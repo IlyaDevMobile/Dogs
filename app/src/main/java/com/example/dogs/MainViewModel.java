@@ -54,72 +54,49 @@ public class MainViewModel extends AndroidViewModel {
 
     public void loadDogImage() {
         isLoading.setValue(true);
-       Disposable disposable =  loadDogImageRx()
+        Disposable disposable = loadDogImageRx()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-               .doOnSubscribe(new Consumer<Disposable>() {
-                   @Override
-                   public void accept(Disposable disposable) throws Throwable {
-                       isError.setValue(false);
-                       isLoading.setValue(true);
-                   }
-               })
-               .doAfterTerminate(new Action() {
-                   @Override
-                   public void run() throws Throwable {
-                       isLoading.setValue(false);
-                   }
-               })
-               .doOnError(new Consumer<Throwable>() {
-                   @Override
-                   public void accept(Throwable throwable) throws Throwable {
-                       isError.setValue(true);
-                   }
-               })
+                .doOnSubscribe(new Consumer<Disposable>() {
+                    @Override
+                    public void accept(Disposable disposable) throws Throwable {
+                        isError.setValue(false);
+                        isLoading.setValue(true);
+                    }
+                })
+                .doAfterTerminate(new Action() {
+                    @Override
+                    public void run() throws Throwable {
+                        isLoading.setValue(false);
+                    }
+                })
+                .doOnError(new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Throwable {
+                        isError.setValue(true);
+                    }
+                })
                 .subscribe(new Consumer<DogsImage>() {
-                               @Override
-                               public void accept(DogsImage image) throws Throwable {
+                    @Override
+                    public void accept(DogsImage image) throws Throwable {
 
-                                   dogsImage.setValue(image);
+                        dogsImage.setValue(image);
 
-                               }
-                           }, new Consumer<Throwable>() {
-                               @Override
-                               public void accept(Throwable throwable) throws Throwable {
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Throwable {
 
-                                   Log.d(TAG,"Error: " + throwable.getMessage());
+                        Log.d(TAG, "Error: " + throwable.getMessage());
 
-                               }
-                           });
-       compositeDisposable.add(disposable);
+                    }
+                });
+        compositeDisposable.add(disposable);
 
     }
 
-    private Single<DogsImage> loadDogImageRx(){
-        return Single.fromCallable(new Callable<DogsImage>() {
-            @Override
-            public DogsImage call() throws Exception {
-                    URL url = new URL(BASE_URL);
-                    HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                    InputStream inputStream = urlConnection.getInputStream();
-                    InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-                    BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-
-                    StringBuilder data = new StringBuilder();
-                    String result;
-                    do {
-                        result = bufferedReader.readLine();
-                        data.append(result);
-
-                    } while (result != null);
-
-
-                    JSONObject jsonObject = new JSONObject(data.toString());
-                    String message = jsonObject.getString(KEY_MESSAGE);
-                    String status = jsonObject.getString(KEY_STATUS);
-                    return new DogsImage(message, status);
-            }
-        });
+    private Single<DogsImage> loadDogImageRx() {
+        return ApiFactory.getApiServise().loadDogImage();
     }
 
     @Override
